@@ -13,6 +13,239 @@ What sets Ferreiro apart:
 - **Magic in adapters, not domain** — Auto-admin and introspection happen outside your business logic
 - **Django's developer experience** — Migrations, admin, CLI tools, the works
 
+## Developer Experience
+
+### Hot Module Replacement for Templates
+
+Not just reload — actually push template changes to the browser without losing state. Tera/MiniJinja changes appear instantly.
+
+### Type-Safe URL Reversing
+
+```rust
+// Compile-time checked URL generation
+let url = routes::blog::post_detail(post.id());  // Error if route doesn't exist
+```
+
+### Automatic OpenAPI/JSON Schema Generation
+
+Derive from your domain types. No separate spec to maintain.
+
+### Built-in REPL with Async Support
+
+```bash
+$ ferreiro shell
+>>> let posts = Post::objects().filter(status: Published).all().await;
+>>> posts.len()
+42
+```
+
+### Domain-Driven Features
+
+#### Aggregate Root Enforcement
+
+The framework understands aggregate boundaries. Repositories only load/save aggregates, never entities directly. Enforced at the type level.
+
+#### Event Sourcing as an Adapter
+
+Swap your repository adapter to store events instead of state. Same domain code, different persistence strategy.
+
+```rust
+// settings.rs
+let post_repo: Arc<dyn PostRepository> = match settings.persistence {
+    "state" => Arc::new(PostgresPostRepository::new(db)),
+    "events" => Arc::new(EventSourcedPostRepository::new(event_store)),
+};
+```
+
+#### Saga/Process Manager Support
+
+Long-running business processes that react to domain events and coordinate across aggregates.
+
+### The Admin That Actually Helps
+
+#### Admin Actions as Domain Commands
+
+Admin actions map directly to your application layer commands. No special admin logic.
+
+```rust
+impl ModelAdmin for PostAdmin {
+    fn actions(&self) -> Vec<AdminAction> {
+        vec![
+            AdminAction::new("publish", |ids| {
+                // This calls your actual PostService::publish
+                for id in ids {
+                    post_service.publish(&id).await?;
+                }
+            }),
+        ]
+    }
+}
+```
+
+#### Audit Log Built-in
+
+Every admin action creates a domain event. Full history of who changed what.
+
+#### Field-Level Permissions
+
+Not just model-level. Marketing can edit title, only editors can touch status.
+
+### Query Layer
+
+#### CQRS-Ready Read Models
+
+Separate read-optimized projections that update from domain events.
+
+```rust
+#[derive(ReadModel)]
+#[updates_from(PostPublished, PostArchived)]
+pub struct PostListingView {
+    pub id: PostId,
+    pub title: String,
+    pub author_name: String,  // Denormalized
+    pub published_at: DateTime<Utc>,
+}
+```
+
+#### GraphQL Adapter
+
+Same domain, different delivery mechanism. Automatically derived from your ports.
+
+#### Full-Text Search Adapter
+
+Pluggable. Meilisearch, Elasticsearch, or PostgreSQL's built-in. Indexes stay in sync via domain events.
+
+### Background Processing
+
+#### Transactional Outbox
+
+Events are persisted in the same transaction as state changes. A separate process reliably delivers them. No lost events.
+
+#### Delayed Jobs from Domain Events
+
+```rust
+// When PostCreated fires, schedule a reminder
+#[job(delay = "24h", on = PostCreated)]
+async fn send_engagement_reminder(event: PostCreated) {
+    // Check if author has engaged with comments
+}
+```
+
+#### Dead Letter Queue with Replay
+
+Failed jobs don't disappear. Inspect, fix, replay.
+
+### Multi-tenancy
+
+#### Tenant Isolation at the Port Level
+
+```rust
+pub trait PostRepository: Send + Sync {
+    async fn find_by_id(&self, tenant: &TenantId, id: &PostId) -> Result<Option<Post>>;
+}
+```
+
+The adapter handles whether that's row-level filtering, schema separation, or separate databases.
+
+#### Tenant-Aware Middleware
+
+Extracts tenant from subdomain, header, or JWT. Available everywhere via request extensions.
+
+### Observability
+
+#### Structured Logging with Context Propagation
+
+Request ID, user ID, tenant ID automatically attached to every log line.
+
+#### OpenTelemetry Traces
+
+Each port call is a span. See exactly where time is spent across adapters.
+
+#### Health Checks as Adapters
+
+```rust
+pub trait HealthCheck: Send + Sync {
+    async fn check(&self) -> HealthStatus;
+}
+
+// Each adapter implements it
+impl HealthCheck for PostgresBackend { /* ... */ }
+impl HealthCheck for RedisSessionStore { /* ... */ }
+```
+
+### Testing
+
+#### In-Memory Adapters for Everything
+
+Every driven port has an in-memory implementation. Tests run fast, no containers needed.
+
+```rust
+#[test]
+async fn test_publish_post() {
+    let repo = InMemoryPostRepository::new();
+    let events = InMemoryEventPublisher::new();
+    let service = PostServiceImpl::new(repo, events);
+
+    // Test domain logic without any infrastructure
+}
+```
+
+#### Scenario Testing DSL
+
+```rust
+scenario!("User publishes a draft post")
+    .given(a_draft_post().with_body("content"))
+    .when(user_publishes_the_post())
+    .then(post_status_is(Published))
+    .and(event_was_published(PostPublished));
+```
+
+#### Contract Testing for Adapters
+
+Verify your PostgreSQL adapter behaves identically to SQLite adapter.
+
+### Security
+
+#### RBAC/ABAC at the Port Level
+
+Permissions checked before entering the application layer.
+
+```rust
+#[requires(Permission::PublishPost)]
+async fn publish(&self, id: &PostId) -> Result<Post, ServiceError>;
+```
+
+#### Automatic CSRF for State-Changing Operations
+
+Not just forms. API calls from browsers too.
+
+#### Rate Limiting as Middleware
+
+Per-user, per-IP, per-tenant. Configurable per-route.
+
+### Deployment
+
+#### Single Binary with Embedded Migrations
+
+```bash
+$ ferreiro build --release
+$ ./myapp migrate && ./myapp serve
+```
+
+#### Feature Flags as Configuration
+
+```rust
+if features.is_enabled("new_checkout", user.id()) {
+    // New flow
+}
+```
+
+Adapters for LaunchDarkly, Unleash, or simple JSON file.
+
+#### Zero-Downtime Migrations
+
+Framework guides you toward backward-compatible schema changes. Warns when a migration would require downtime.
+
 ## Architecture Overview
 
 ```

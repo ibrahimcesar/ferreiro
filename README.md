@@ -19,6 +19,7 @@ That's it. You get:
 - Session management
 - Background tasks
 - Authentication scaffolding
+- Frontend integration (React, Svelte, Vue, or full-stack Rust)
 
 No decision fatigue. No hunting for crates. Just build.
 
@@ -133,6 +134,76 @@ log::info!("Post published");
 ```
 
 OpenTelemetry traces track every port call. See exactly where time is spent without instrumenting every function.
+
+### Frontend Integration
+
+Ferreiro doesn't force you into server-side rendering. Use whatever frontend stack you want:
+
+#### API-First Mode (React, Svelte, Vue, etc.)
+
+```rust
+// Automatically serializes to JSON
+#[get("/api/posts")]
+async fn list_posts() -> Result<Vec<Post>> {
+    Post::objects().all().await
+}
+
+// Your React/Svelte/Vue app consumes the API
+// OpenAPI spec auto-generated for type-safe clients
+```
+
+#### Vite Integration
+
+```bash
+$ ferreiro add vite --framework react
+# or --framework svelte, --framework vue
+```
+
+This sets up:
+- Vite dev server proxy during development
+- Hot module replacement for your frontend
+- Production asset bundling
+- Automatic static file serving
+
+Your `ferreiro runserver` starts both backend and Vite simultaneously. One command, full-stack development.
+
+#### Static Asset Serving
+
+```rust
+// In settings.rs
+pub struct StaticFiles {
+    pub dirs: Vec<&'static str>,
+    pub url_prefix: &'static str,
+}
+
+// Serves /static/* from ./static and ./dist
+// Vite builds to ./dist automatically
+```
+
+#### Server-Side Rendering (Traditional)
+
+Templates work great for server-rendered apps:
+
+```rust
+#[get("/posts/{id}")]
+async fn post_detail(id: PostId) -> Result<Template> {
+    let post = Post::objects().get(id).await?;
+    Template::render("posts/detail.html", context! { post })
+}
+```
+
+Mix and match approaches. Server-render your marketing pages, use React for your dashboard. It's your app.
+
+#### Full-Stack Rust (Leptos, Dioxus)
+
+Want Rust on the frontend too?
+
+```bash
+$ ferreiro add leptos
+# or ferreiro add dioxus
+```
+
+Ferreiro handles the build pipeline, serves your WASM, and provides API endpoints your frontend can call. Your domain types work on both client and server with zero duplication.
 
 ### Domain-Driven Features
 

@@ -1,29 +1,89 @@
 # Ferreiro
 
-A Django-inspired web framework for Rust, built on hexagonal architecture. Developer-first, batteries included, adapters swappable.
+A Django-inspired web framework for Rust, built on hexagonal architecture. **For developers who want to build, not configure.**
+
+## For Lazy Developers
+
+Most Rust web frameworks make you assemble everything yourself. Ferreiro gives you what Django developers take for granted:
+
+```bash
+$ ferreiro startproject webapp
+$ cd webapp
+$ ferreiro runserver
+```
+
+That's it. You get:
+- Auto-reloading dev server (templates AND code)
+- Database with migrations
+- Admin interface
+- Session management
+- Background tasks
+- Authentication scaffolding
+- Frontend integration (React, Svelte, Vue, or full-stack Rust)
+
+No decision fatigue. No hunting for crates. Just build.
+
+### What You Don't Have to Do
+
+**Other Rust frameworks**: Pick a router (axum? actix? warp?), choose a database crate, find a migration tool, set up sessions, configure logging, add tracing, wire up background jobs, build an admin panel...
+
+**Ferreiro**: `ferreiro startproject`. Done.
+
+You're not lazy for wanting this. You're smart. You want to build features, not infrastructure.
+
+### Your First Endpoint in 5 Minutes
+
+```rust
+// webapp/handlers.rs
+use ferreiro::prelude::*;
+
+#[derive(Model)]
+pub struct Post {
+    title: String,
+    body: Text,
+    status: PostStatus,
+}
+
+#[get("/posts/{id}")]
+async fn post_detail(id: PostId) -> Result<Post> {
+    Post::objects().get(id).await
+}
+```
+
+That's it. No manual routing registration. No database setup. No JSON serialization boilerplate. Just write your handler.
+
+Run `ferreiro makemigrations && ferreiro migrate`. Your database table exists. Visit `/admin`. Your CRUD interface exists. It just works.
 
 ## Philosophy
 
-Django succeeded because it made the common cases trivial and the complex cases possible. Ferreiro aims for the same in Rust: convention over configuration, sensible defaults, and a cohesive ecosystem where components are designed to work together.
+Django succeeded because it made the common cases trivial and the complex cases possible. Ferreiro brings this to Rust: **convention over configuration, sensible defaults, and a cohesive ecosystem where components work together out of the box.**
 
 What sets Ferreiro apart:
 
+- **Batteries included, not assembly required** — Everything you need to ship, included
 - **Hexagonal architecture** — Your domain logic stays pure, framework concerns live in adapters
-- **Swappable everything** — Database, templates, sessions, email — all behind traits
+- **Swappable everything** — Start with SQLite, swap to Postgres later. Zero domain changes.
 - **Magic in adapters, not domain** — Auto-admin and introspection happen outside your business logic
-- **Django's developer experience** — Migrations, admin, CLI tools, the works
+- **Fast feedback loops** — Hot reload for templates, background compilation, instant iterations
 
 ## Developer Experience
 
-### Hot Module Replacement for Templates
+### Instant Feedback Loops
 
-Not just reload — actually push template changes to the browser without losing state. Tera/MiniJinja changes appear instantly.
+**Hot Module Replacement for Templates**: Not just reload — actually push template changes to the browser without losing state. Edit a template, see it update instantly without losing form data or navigation state.
+
+**Auto-reloading Server**: Code changes trigger automatic recompilation and restart. No manual rebuilds, no shell scripts, no tmux windows.
+
+```bash
+$ ferreiro runserver --hot-reload
+# Edit any file. See changes. Keep building.
+```
 
 ### Type-Safe URL Reversing
 
 ```rust
 // Compile-time checked URL generation
-let url = routes::blog::post_detail(post.id());  // Error if route doesn't exist
+let url = routes::webapp::post_detail(post.id());  // Error if route doesn't exist
 ```
 
 ### Automatic OpenAPI/JSON Schema Generation
@@ -38,6 +98,112 @@ $ ferreiro shell
 >>> posts.len()
 42
 ```
+
+### Background Tasks Without the Boilerplate
+
+Most frameworks make you set up Redis, workers, and job queues. Ferreiro includes everything:
+
+```rust
+#[job(delay = "1h")]
+async fn send_welcome_email(user_id: UserId) {
+    let user = User::objects().get(user_id).await?;
+    emails::send_welcome(&user).await?;
+}
+
+// Schedule from anywhere
+send_welcome_email.schedule(user.id()).await?;
+```
+
+Transactional outbox included. Failed jobs go to dead letter queue. Retry logic built-in. You just write the function.
+
+### Zero-Config Observability
+
+Logging, metrics, and tracing are built-in, not bolted on:
+
+```rust
+// Every request automatically gets:
+// - Request ID
+// - User ID (if authenticated)
+// - Tenant ID (if multi-tenant)
+// - Execution time
+// - Database query count
+
+// In your domain code, just log normally:
+log::info!("Post published");
+// Output: [req:abc123][user:42][tenant:acme] Post published
+```
+
+OpenTelemetry traces track every port call. See exactly where time is spent without instrumenting every function.
+
+### Frontend Integration
+
+Ferreiro doesn't force you into server-side rendering. Use whatever frontend stack you want:
+
+#### API-First Mode (React, Svelte, Vue, etc.)
+
+```rust
+// Automatically serializes to JSON
+#[get("/api/posts")]
+async fn list_posts() -> Result<Vec<Post>> {
+    Post::objects().all().await
+}
+
+// Your React/Svelte/Vue app consumes the API
+// OpenAPI spec auto-generated for type-safe clients
+```
+
+#### Vite Integration
+
+```bash
+$ ferreiro add vite --framework react
+# or --framework svelte, --framework vue
+```
+
+This sets up:
+- Vite dev server proxy during development
+- Hot module replacement for your frontend
+- Production asset bundling
+- Automatic static file serving
+
+Your `ferreiro runserver` starts both backend and Vite simultaneously. One command, full-stack development.
+
+#### Static Asset Serving
+
+```rust
+// In settings.rs
+pub struct StaticFiles {
+    pub dirs: Vec<&'static str>,
+    pub url_prefix: &'static str,
+}
+
+// Serves /static/* from ./static and ./dist
+// Vite builds to ./dist automatically
+```
+
+#### Server-Side Rendering (Traditional)
+
+Templates work great for server-rendered apps:
+
+```rust
+#[get("/posts/{id}")]
+async fn post_detail(id: PostId) -> Result<Template> {
+    let post = Post::objects().get(id).await?;
+    Template::render("posts/detail.html", context! { post })
+}
+```
+
+Mix and match approaches. Server-render your marketing pages, use React for your dashboard. It's your app.
+
+#### Full-Stack Rust (Leptos, Dioxus)
+
+Want Rust on the frontend too?
+
+```bash
+$ ferreiro add leptos
+# or ferreiro add dioxus
+```
+
+Ferreiro handles the build pipeline, serves your WASM, and provides API endpoints your frontend can call. Your domain types work on both client and server with zero duplication.
 
 ### Domain-Driven Features
 
@@ -1588,6 +1754,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     serve(app, &settings.host, settings.port).await
 }
 ```
+
+---
+
+## Why This Exists
+
+Building web apps in Rust shouldn't require assembling dozens of crates and making architectural decisions before writing a single handler. Frameworks like Django and Rails succeeded because they eliminated decision fatigue and let developers focus on building.
+
+Rust deserves the same. Not a minimal router that leaves you to figure out the rest. A complete framework where the batteries are actually included.
+
+Ferreiro is for developers who:
+- Want to ship quickly without sacrificing Rust's safety and performance
+- Prefer convention over configuration
+- Value their time more than demonstrating they can wire up infrastructure from scratch
+- Believe "batteries included" is a feature, not a flaw
+
+This framework embraces the philosophy that wanting things to "just work" doesn't make you lazy — it makes you productive.
+
+**Inspired by**: [Rust needs a web framework for lazy developers](https://ntietz.com/blog/rust-needs-a-web-framework-for-lazy-developers/) and decades of Django showing the way.
 
 ---
 

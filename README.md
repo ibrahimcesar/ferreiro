@@ -7,8 +7,8 @@ A Django-inspired web framework for Rust, built on hexagonal architecture. **For
 Most Rust web frameworks make you assemble everything yourself. Ferreiro gives you what Django developers take for granted:
 
 ```bash
-$ ferreiro startproject blog
-$ cd blog
+$ ferreiro startproject webapp
+$ cd webapp
 $ ferreiro runserver
 ```
 
@@ -33,7 +33,7 @@ You're not lazy for wanting this. You're smart. You want to build features, not 
 ### Your First Endpoint in 5 Minutes
 
 ```rust
-// blog/handlers.rs
+// webapp/handlers.rs
 use ferreiro::prelude::*;
 
 #[derive(Model)]
@@ -82,7 +82,7 @@ $ ferreiro runserver --hot-reload
 
 ```rust
 // Compile-time checked URL generation
-let url = routes::blog::post_detail(post.id());  // Error if route doesn't exist
+let url = routes::webapp::post_detail(post.id());  // Error if route doesn't exist
 ```
 
 ### Automatic OpenAPI/JSON Schema Generation

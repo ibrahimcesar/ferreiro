@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
+description = "Session management adapters for Ferreiro - cookie, memory, and database sessions"
 
 [dependencies]
 async-trait = { workspace = true }

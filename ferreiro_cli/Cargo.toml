@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
+description = "CLI tool for Ferreiro - project scaffolding and management commands"
 
 [[bin]]
 name = "ferreiro"

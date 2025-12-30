@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
+description = "Admin interface for Ferreiro - auto-generated CRUD and model introspection"
 
 [dependencies]
 async-trait = { workspace = true }

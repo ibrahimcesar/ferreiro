@@ -1,6 +1,32 @@
 # Ferreiro
 
+[![Crates.io](https://img.shields.io/crates/v/ferreiro.svg)](https://crates.io/crates/ferreiro)
+[![Documentation](https://docs.rs/ferreiro/badge.svg)](https://docs.rs/ferreiro)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
 A Django-inspired web framework for Rust, built on hexagonal architecture. **For developers who want to build, not configure.**
+
+> ⚠️ **ALPHA RELEASE - Work in Progress**
+>
+> Ferreiro is in early development (v0.0.x). The architecture is solid and the foundation is ready, but many features described below are **planned** and not yet implemented. See the [Current Status](#current-status) section to understand what works today.
+>
+> **What works now:**
+> - ✅ Domain modeling with value objects and events
+> - ✅ In-memory repositories for testing
+> - ✅ HTTP server (Axum-based)
+> - ✅ Template engines (Tera, MiniJinja)
+> - ✅ Session management (Cookie, Memory)
+> - ✅ Hexagonal architecture foundations
+>
+> **Coming soon:**
+> - 🚧 PostgreSQL/SQLite adapters
+> - 🚧 Migration engine
+> - 🚧 Admin interface
+> - 🚧 CLI commands (`startproject`, `runserver`, etc.)
+> - 🚧 Authentication service
+> - 🚧 Background jobs
+>
+> We're actively developing and welcome early adopters and contributors!
 
 ## For Lazy Developers
 

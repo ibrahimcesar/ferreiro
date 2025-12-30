@@ -1,0 +1,25 @@
+[package]
+name = "ferreiro"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "A Django-inspired web framework for Rust, built on hexagonal architecture"
+keywords = ["web", "framework", "django", "hexagonal", "architecture"]
+categories = ["web-programming::http-server"]
+
+[dependencies]
+ferreiro_domain = { version = "0.0.1", path = "../ferreiro_domain" }
+ferreiro_application = { version = "0.0.1", path = "../ferreiro_application" }
+ferreiro_adapters_db = { version = "0.0.1", path = "../ferreiro_adapters_db" }
+ferreiro_adapters_http = { version = "0.0.1", path = "../ferreiro_adapters_http" }
+ferreiro_adapters_templates = { version = "0.0.1", path = "../ferreiro_adapters_templates" }
+ferreiro_adapters_session = { version = "0.0.1", path = "../ferreiro_adapters_session" }
+ferreiro_adapters_admin = { version = "0.0.1", path = "../ferreiro_adapters_admin" }
+
+# Re-export common dependencies
+tokio = { workspace = true }
+async-trait = { workspace = true }
+axum = { workspace = true }
+serde = { workspace = true }

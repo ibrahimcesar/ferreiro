@@ -1,0 +1,77 @@
+[workspace]
+resolver = "2"
+members = [
+    "ferreiro_domain",
+    "ferreiro_application",
+    "ferreiro_adapters_db",
+    "ferreiro_adapters_http",
+    "ferreiro_adapters_templates",
+    "ferreiro_adapters_session",
+    "ferreiro_adapters_admin",
+    "ferreiro_cli",
+    "ferreiro",
+]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2021"
+license = "Apache-2.0"
+authors = ["Ferreiro Contributors"]
+homepage = "https://github.com/ibrahimcesar/ferreiro"
+repository = "https://github.com/ibrahimcesar/ferreiro"
+documentation = "https://docs.rs/ferreiro"
+readme = "README.md"
+keywords = ["web", "framework", "django", "hexagonal"]
+categories = ["web-programming::http-server"]
+
+[workspace.dependencies]
+# Workspace crates
+ferreiro_domain = { path = "./ferreiro_domain" }
+ferreiro_application = { path = "./ferreiro_application" }
+ferreiro_adapters_db = { path = "./ferreiro_adapters_db" }
+ferreiro_adapters_http = { path = "./ferreiro_adapters_http" }
+ferreiro_adapters_templates = { path = "./ferreiro_adapters_templates" }
+ferreiro_adapters_session = { path = "./ferreiro_adapters_session" }
+ferreiro_adapters_admin = { path = "./ferreiro_adapters_admin" }
+
+# Common dependencies
+tokio = { version = "1.41", features = ["full"] }
+async-trait = "0.1"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+thiserror = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "sqlite", "uuid", "chrono"] }
+
+# HTTP
+axum = "0.7"
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+
+# Templates
+tera = "1"
+minijinja = { version = "2", features = ["loader"] }
+
+# Session
+redis = { version = "0.27", features = ["tokio-comp", "connection-manager"] }
+hmac = "0.12"
+sha2 = "0.10"
+base64 = "0.22"
+rand = "0.8"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+dialoguer = "0.11"
+
+# Utilities
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
+description = "Domain layer for Ferreiro - pure business logic with zero framework dependencies"
 
 [dependencies]
 chrono = { workspace = true }

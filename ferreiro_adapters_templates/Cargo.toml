@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
+description = "Template engine adapters for Ferreiro - Tera and MiniJinja support"
 
 [dependencies]
 tera = { workspace = true, optional = true }

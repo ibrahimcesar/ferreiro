@@ -5,9 +5,10 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
+description = "Database adapters for Ferreiro - in-memory, PostgreSQL, and SQLite implementations"
 
 [dependencies]
-ferreiro_domain = { workspace = true }
+ferreiro_domain = { version = "0.0.1", path = "../ferreiro_domain" }
 sqlx = { workspace = true }
 async-trait = { workspace = true }
 tokio = { workspace = true }

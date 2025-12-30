@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
+description = "Application layer for Ferreiro - service implementations and use cases"
 
 [dependencies]
 ferreiro_domain = { version = "0.0.1", path = "../ferreiro_domain" }

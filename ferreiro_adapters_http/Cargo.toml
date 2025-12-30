@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
+description = "HTTP adapters for Ferreiro - Axum-based web server and routing"
 
 [dependencies]
 ferreiro_domain = { version = "0.0.1", path = "../ferreiro_domain" }
